@@ -248,7 +248,7 @@ Node* treeParse (Node* node, FILE* DBFileptr)
     char data[MAXDATASIZE] = "";
     char bracket           = '\0';
 
-    bracket = fgetc (DBFileptr);
+    bracket = (char) fgetc (DBFileptr);
 
     Node* curNode = nullptr; 
 
@@ -258,7 +258,7 @@ Node* treeParse (Node* node, FILE* DBFileptr)
         curNode = nodeCtor (data);
     }
 
-    bracket = fgetc (DBFileptr);
+    bracket = (char) fgetc (DBFileptr);
 
 
     if (bracket == '}')
@@ -272,7 +272,7 @@ Node* treeParse (Node* node, FILE* DBFileptr)
         curNode->left = treeParse (curNode, DBFileptr);
     }
 
-    bracket = fgetc (DBFileptr);
+    bracket = (char) fgetc (DBFileptr);
 
 
     if (bracket == '}')
@@ -285,7 +285,7 @@ Node* treeParse (Node* node, FILE* DBFileptr)
         curNode->right = treeParse (curNode, DBFileptr);
     }
 
-    bracket = fgetc (DBFileptr);
+    bracket = (char) fgetc (DBFileptr);
 
 
     if (bracket == '}')
@@ -327,60 +327,26 @@ int definition (Node* node, char* dataToFind, List_t* list)
     }
     
     else
-    {
-
         return 0;
-    }
 
-}
-
-void difference (Node* node, char* object1, char* object2, List_t* list1, List_t* list2)
-{
-    definition (node, object1, list1);
-    definition (node, object2, list2);
-
-    ListElement* curElement1 = list1->nullElement->prevElementInd;
-    ListElement* curElement2 = list2->nullElement->prevElementInd;
-
-    size_t size = list2->size; 
-
-    if (list1->size > list2->size)
-    {
-        size = list1->size;
-    }
-
-    for (size_t index = 0; index < size; ++index)
-    {
-    }
 }
 
 int findInTree (Node* node, char* dataToFind)
 {
     if (strcmp (node->data, dataToFind) == 0)
-    {
         return 1;
-    }
 
     else if (node->left == nullptr && node->right == nullptr)
-    {
         return 0;
-    }
 
     if (findInTree (node->left, dataToFind))
-    {
         return 1;
-    }
 
     else if (findInTree (node->right, dataToFind))
-    {
         return 1;
-    }
     
     else
-    {
-
         return 0;
-    }
 }
 
 void difference (Node* node, char* obj1, char* obj2)
@@ -449,6 +415,46 @@ void difference (Node* node, char* obj1, char* obj2)
 
 }
 
+void differenceMode (Node* treeRoot)
+{
+    printf ("\033c");
+    printf ("Write first word\n");
+
+    char first[MAXDATASIZE] = "";
+    scanf ("%s", first);
+
+    printf ("Write second word\n");
+
+    char second[MAXDATASIZE] = "";
+    scanf ("%s", second);
+
+    difference (treeRoot, first, second);
+}
+
+void definitionMode (Node* treeRoot)
+{
+    List_t list = {};
+    listCtor (&list);
+
+    char dataToFind[MAXDATASIZE] = "";
+
+    printf ("\033c");
+    printf ("Okay, let's start\n");
+    printf ("Please, enter the word\n");
+    
+    inputCleaning ();
+    scanf ("%s", dataToFind);
+
+    int isFound = definition (treeRoot, dataToFind, &list);
+
+    if (!isFound) 
+        printf ("Object not found\n");
+    else 
+        listPrint (&list);
+
+    listDtor (&list);
+}
+
 void listPrint (List_t* list)
 {
     ListElement* curElement = list->nullElement->prevElementInd;
@@ -464,7 +470,8 @@ void listPrint (List_t* list)
 
 void printMenu ()
 {
-    printf ("\nWELCOME TO AKINATOR GAME\n");
+    printf ("\033c");
+    printf ("WELCOME TO AKINATOR GAME\n");
     printf ("Choose mode of the game\n");
     printf ("1 - casual game (guesing your character)\n");
     printf ("2 - definition (give definition of word from database\n");
@@ -503,50 +510,15 @@ int main ()
                 break;
 
             case Definition:
-                {
-                List_t list = {};
-                listCtor (&list);
-
-                char dataToFind[MAXDATASIZE] = "";
-
-                printf ("\033c");
-                printf ("Okay, let's start\n");
-                printf ("Please, enter the word\n");
-                
-                inputCleaning ();
-                scanf ("%s", dataToFind);
-
-                int isFound = definition (tree.root, dataToFind, &list);
-
-                if (!isFound) 
-                    printf ("Object not found\n");
-                else 
-                    listPrint (&list);
-
+                definitionMode (tree.root);
                 break;
-                }
 
             case Difference:
-                {
-                printf ("\033c");
-                printf ("Write first word\n");
-
-                char first[MAXDATASIZE] = "";
-                scanf ("%s", first);
-
-                printf ("Write second word\n");
-
-                char second[MAXDATASIZE] = "";
-                scanf ("%s", second);
-
-                difference (tree.root, first, second);
-
+                differenceMode (tree.root);
                 break;
-                }
 
             case Graphic:
                 treeDump (&tree, "Graphic dump, called by graphic mode\n");
-
                 break;
 
             case Quit:

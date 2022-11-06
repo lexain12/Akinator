@@ -7,7 +7,7 @@ typedef char* Elem_t;
 #define Format_ "%s"
 #include "AltList.h"
 
-char* Poison        = "\0";
+char* Poison        = "";
 const size_t SizePoison = 0xDEADBEEF;
 
 extern FILE* LOGFILEPTR;
