@@ -3,12 +3,13 @@
 #include <cassert>
 #include <cstring>
 
+#define SPEAKMODE 0
+
 typedef char* Data;
 extern FILE* LOGFILEPTR;
 typedef char* Elem_t;
 #include "AltList.h"
 #include "tree.h"
-
 
 void inputCleaning()
 {
@@ -45,11 +46,6 @@ int treeCtor (Tree* tree, const Data data)
     tree->root   = nodeCtor (data);
     tree->size   = 1;
     tree->status = noErrors;
-
-//    if (tree->status |= treeVerify (tree))
-//    {
-//        listDump (list, "Error ctor\n");
-//    }
 
     return noErrors;
 }
@@ -89,17 +85,13 @@ void makeGraph (Tree* tree)
 {
     FILE* GraphFilePtr = fopen(GraphFile, "w");
     assert (tree != nullptr);
-//    if (tree->status |= listVerify (list))
-//    {
-//        listDump (list, "Error in myGraph function, element: \n");
-//    }
 
     dumpprint ("digraph MyGraph {\n")
     dumpprint ("    node [color=black, shape=record, style=\"rounded, filled\"];\n")
     dumpprint ("    rankdir=TB;\n")
     dumpprint ("    edge[constraint=true];\n")
 
-    dumpprint ("    nd%p [fillcolor=\"#a1a1a1\", label=\"%s\"];\n",
+    dumpprint ("    nd%p [fillcolor=\"#54e3c2\", label=\"%s\"];\n",
                 tree->root, tree->root->data);
 
    treeGraph (tree->root, GraphFilePtr);
@@ -109,7 +101,7 @@ void makeGraph (Tree* tree)
     fclose(GraphFilePtr);
     static int picVersion = 0;
 
-    char buf[100] = "";
+    char buf[MAXDATASIZE] = "";
     sprintf(buf, "dot -Tsvg -Gcharset=latin1 GraphFile.txt > src/pic%d.svg", picVersion);
     picVersion++;
 
@@ -127,45 +119,21 @@ void treeDump (Tree* tree, const char* str, ...)
     fprintf (LOGFILEPTR, "<h2>");
     vfprintf (LOGFILEPTR, str, argPtr);
     fprintf (LOGFILEPTR, "</h2>\n");
-//    fprintf (LOGFILEPTR, "<h2>Status:</h2>\n");
-//    
-//if (list->status)
-//    {
-//        fprintf (LOGFILEPTR, "<h2>(ERROR: %d)</h2>\n", list->status);
-//        fprintf (LOGFILEPTR, "-----------------Errors-------------------\n");
-//    #define ErrorPrint(error, text)                                       \
-//                if (error & list->status)                                       \
-//                {                                                         \
-//                    fprintf(LOGFILEPTR, "ERROR ["#error"] " #text "\n"); \
-//                }
-//
-//        ErrorPrint (noErrors,             No errors);
-//        ErrorPrint (listptrError,          Wrong ptr on structure with list);
-//        ErrorPrint (capacityError,        Wrong capacity);
-//        ErrorPrint (dataError,            No pointer on data (list with elements));
-//        ErrorPrint (sizeError,            Bad Size of list);
-//        ErrorPrint (sizeAndCapacityError, Size bigger than capacity => problem with list size) ErrorPrint (listResizeUpError,    Cannot resizeUp the list);
-//        ErrorPrint (memAllocError,        Cannot allocate memory);
-//        ErrorPrint (listResizeDownError,  Cannot resize down);
-//        fprintf (LOGFILEPTR, "-------------End-of-errors----------------\n");
-//    }
-//    else
-//        fprintf(LOGFILEPTR, "<h2> (no errors) </h2>\n");
     
     makeGraph (tree);
     static int picVersion = 0;
     fprintf (LOGFILEPTR, "<img src = \"src/pic%d.svg\"/>\n", picVersion++);
 
-    return;
-}
+    return; }
 
-void treeGraph (Node* node, FILE* GraphFilePtr)
+void treeGraph (const Node* node, FILE* GraphFilePtr)
 {
     assert (node != nullptr);
+    assert (GraphFilePtr != nullptr);
 
     if (node->left)
     {
-        dumpprint ("    nd%p [fillcolor=\"#a1a1a1\", label=\"%s\"];\n",
+        dumpprint ("    nd%p [fillcolor=\"#54e3c2\", label=\"%s\"];\n",
                     node->left, node->left->data);
 
         dumpprint ("    nd%p -> nd%p\n", node, node->left);
@@ -174,7 +142,7 @@ void treeGraph (Node* node, FILE* GraphFilePtr)
     }
     if (node->right)
     {
-        dumpprint ("    nd%p [fillcolor=\"#a1a1a1\", label=\"%s\"];\n",
+        dumpprint ("    nd%p [fillcolor=\"#54e3c2\", label=\"%s\"];\n",
                     node->right, node->right->data);
 
         dumpprint ("    nd%p -> nd%p\n", node, node->right);
@@ -194,6 +162,7 @@ void akinator (Node* node)
 
     while (true)
     {
+
         char answer[20] = "";
 
         printf("%s ?\n", curNode->data);
@@ -225,8 +194,10 @@ void akinator (Node* node)
                 assert (object != nullptr);
 
                 printf ("What's the difference between %s and %s? \n", object, curNode->data);
+                
                 inputCleaning ();
                 scanf ("%[^\n]", difference);
+                assert (difference != nullptr);
 
                 Node* yesNode = nodeCtor (object);
                 Node* noNode  = nodeCtor (curNode->data);
@@ -297,7 +268,7 @@ Node* treeParse (Node* node, FILE* DBFileptr)
     return nullptr;
 }
 
-int definition (Node* node, char* dataToFind, List_t* list)
+int definition (Node* node, const char* dataToFind, List_t* list)
 {
     if (strcmp (node->data, dataToFind) == 0)
     {
@@ -318,7 +289,7 @@ int definition (Node* node, char* dataToFind, List_t* list)
 
     else if (definition (node->right, dataToFind, list))
     {
-        Elem_t sentence = (Elem_t) calloc (MAXDATASIZE + 10, sizeof(char));
+        Elem_t sentence = (Elem_t) calloc (MAXDATASIZE, sizeof(char));
         sprintf (sentence, "Not %s", node->data);
 
         listTailAdd (list, sentence);
@@ -331,7 +302,7 @@ int definition (Node* node, char* dataToFind, List_t* list)
 
 }
 
-int findInTree (Node* node, char* dataToFind)
+int findInTree (Node* node, const char* dataToFind)
 {
     if (strcmp (node->data, dataToFind) == 0)
         return 1;
@@ -349,7 +320,7 @@ int findInTree (Node* node, char* dataToFind)
         return 0;
 }
 
-void difference (Node* node, char* obj1, char* obj2)
+void difference (Node* node, const char* obj1, const char* obj2)
 {
     List_t list1 = {};
     listCtor (&list1);
@@ -365,9 +336,6 @@ void difference (Node* node, char* obj1, char* obj2)
 
     definition (node, obj1, &list1);
     definition (node, obj2, &list2);
-
-    listDump (&list1, "LIST1\n");
-    listDump (&list2, "LIST2\n");
 
     while (list1.size != list2.size)
     {
@@ -392,38 +360,48 @@ void difference (Node* node, char* obj1, char* obj2)
         {
             listHeadAdd (&commonList, listTail (&list1)->element);
         }
+
         else 
-            listHeadAdd (&diffList, listTail (&list1)->element);
+        {
+            printf ("%s is %s, but %s is %s\n", obj1, listTail (&list1)->element, obj2, listTail (&list2)->element);
+        }
 
         listTailDelete (&list1);
         listTailDelete (&list2);
     }
 
-    if (diffList.size > 1)
-    {
-        printf ("Differences:\n");
-        listPrint (&diffList);
-    }
-
     if (commonList.size > 1)
     {
-        printf ("Common:\n");
+        speak (obj1, ToPrint);
+        speak (" and ", ToPrint);
+        speak (obj2, ToPrint);
+        speak (" are ", ToPrint);
         listPrint (&commonList);
+        
     }
     else
-        printf ("Nothing in common\n");
+    {
+        speak ("Nothing in common\n", ToPrint);
+    }
 
+    listDump (&commonList, "1\n");
+    listDump (&diffList  , "2\n");
+
+    listDtor (&list1);
+    listDtor (&list2);
+    listDtor (&commonList);
+    listDtor (&diffList);
 }
 
 void differenceMode (Node* treeRoot)
 {
     printf ("\033c");
-    printf ("Write first word\n");
+    speak ("Write first word\n", ToPrint);
 
     char first[MAXDATASIZE] = "";
     scanf ("%s", first);
 
-    printf ("Write second word\n");
+    speak ("Write second word\n", ToPrint);
 
     char second[MAXDATASIZE] = "";
     scanf ("%s", second);
@@ -439,8 +417,8 @@ void definitionMode (Node* treeRoot)
     char dataToFind[MAXDATASIZE] = "";
 
     printf ("\033c");
-    printf ("Okay, let's start\n");
-    printf ("Please, enter the word\n");
+    speak ("Okay, let's start\n", ToPrint);
+    speak ("Please, enter the word\n", ToPrint);
     
     inputCleaning ();
     scanf ("%s", dataToFind);
@@ -448,10 +426,14 @@ void definitionMode (Node* treeRoot)
     int isFound = definition (treeRoot, dataToFind, &list);
 
     if (!isFound) 
-        printf ("Object not found\n");
+    {
+        speak ("Object not found\n", ToPrint);
+    }
     else 
         listPrint (&list);
 
+
+    listDump (&list, "definition\n");
     listDtor (&list);
 }
 
@@ -461,23 +443,77 @@ void listPrint (List_t* list)
 
     for (size_t index = 0; index < list->size - 2; ++index)
     {
+        speak (curElement->element, NotPrint);
         printf ("%s, ", curElement->element);
         curElement = curElement->prevElementInd;
     }
 
+    speak (curElement->element, NotPrint);
     printf ("%s \n", curElement->element);
+}
+
+void printDifferences (List_t* commonList, List_t* diffList, const char* str1, const char* str2)
+{
+    ListElement* curCommonElement = commonList->nullElement->prevElementInd;
+    ListElement* curDiffElement   = diffList->nullElement->prevElementInd;
+
+    while (curCommonElement != commonList->nullElement && curDiffElement != diffList->nullElement)
+    {
+        printf ("%s is %s and %s is %s, ", curCommonElement->element, str1, curDiffElement->element, str2);
+        curCommonElement = curCommonElement->prevElementInd;
+        curDiffElement   = curDiffElement  ->prevElementInd;
+    }
+
+    while (curCommonElement->prevElementInd != commonList->nullElement)
+    {
+        printf ("%s, ", curCommonElement->element);
+        curCommonElement = curCommonElement->prevElementInd;
+    }
+
+    while (curDiffElement->prevElementInd != diffList->nullElement)
+    {
+        printf ("%s, ", curDiffElement->element);
+        curDiffElement   = curDiffElement  ->prevElementInd;
+    }
+    
+    if (curDiffElement->prevElementInd == diffList->nullElement)
+    {
+        printf ("%s ", curDiffElement->element);
+    }
+
+    else if (curCommonElement->prevElementInd == commonList->nullElement)
+    {
+        printf ("%s ", curCommonElement->element);
+    }
+
+    printf("\n");
+    return;
+
+}
+
+void speak (const char* str, int isPrint)
+{
+#if (SPEAKMODE)
+    char cmd[MAXDATASIZE] = "";
+    sprintf (cmd, "say -v Alex -r 400 \"%s\"", str);
+    system (cmd);
+#endif
+
+    if (isPrint)
+        printf ("%s", str);
+
 }
 
 void printMenu ()
 {
-    printf ("\033c");
-    printf ("WELCOME TO AKINATOR GAME\n");
-    printf ("Choose mode of the game\n");
-    printf ("1 - casual game (guesing your character)\n");
-    printf ("2 - definition (give definition of word from database\n");
-    printf ("3 - difference (give difference between two words from database\n");
-    printf ("4 - graphic dump of current database\n");
-    printf ("5 - quit\n");
+    speak ("WELCOME TO AKINATOR GAME\n", ToPrint);
+    speak ("Choose mode of the game\n", ToPrint);
+    speak ("1 - casual game (guessing your character)\n", ToPrint);
+    speak ("2 - definition (give definition of word from database)\n", ToPrint);
+    speak ("3 - difference (give difference between two words from database)\n", ToPrint);
+    speak ("4 - graphic dump of current database\n", ToPrint);
+    speak ("5 - quit\n", ToPrint);
+
 }
 
 
@@ -493,6 +529,7 @@ int main ()
 
     while (true)
     {
+
         printMenu ();
 
         int mode = 0;
@@ -519,10 +556,10 @@ int main ()
 
             case Graphic:
                 treeDump (&tree, "Graphic dump, called by graphic mode\n");
+                system ("open logfile.html");
                 break;
 
             case Quit:
-
                 DBFileptr = fopen ("DBFile.txt", "w");
 
                 treePrint (tree.root, DBFileptr);
@@ -534,6 +571,9 @@ int main ()
             default:
                 printf ("Wrong mode, try again\n");
         }
+
+        inputCleaning ();
+        getchar ();
     }
 
     return 0;
